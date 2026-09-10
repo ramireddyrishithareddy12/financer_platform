@@ -75,6 +75,9 @@ python backend/app.py
 ```
 
 The server will initialize an empty database at `backend/creditorpulse.db` and start listening at:
+## 🌐 Live Demo
+
+👉 **Live Website:** https://financer-platform.onrender.com
 👉 **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 
 ---
