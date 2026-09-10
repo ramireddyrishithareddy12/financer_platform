@@ -11,7 +11,10 @@ import uuid
 import datetime
 from decimal import Decimal
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "creditorpulse.db")
+DB_PATH = os.environ.get(
+    "DATABASE_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "creditorpulse.db")
+)
 
 def hash_password(password: str) -> str:
     """Standard PBKDF2 password hashing."""

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: finoffice
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 2 --bind 0.0.0.0:$PORT wsgi:app
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: GATEWAY_SHARED_SECRET
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /tmp/creditorpulse.db

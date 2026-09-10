@@ -87,6 +87,27 @@ Run the automated test suite to verify math engine correctness, double-entry led
 python -m unittest discover -s tests
 ```
 
+## 🌐 Publish a Live Demo
+
+The repository includes `render.yaml` and `wsgi.py` for a public HTTPS deployment on Render.
+
+1. Create a GitHub repository and push this project:
+  ```powershell
+  git init
+  git add .
+  git commit -m "Prepare FinOffice hackathon submission"
+  git branch -M main
+  git remote add origin https://github.com/<your-user>/<your-repository>.git
+  git push -u origin main
+  ```
+2. In Render, choose **New > Blueprint**, connect the GitHub repository, and deploy the committed `render.yaml`.
+3. Verify these URLs before submitting the form:
+  - `https://<your-render-service>.onrender.com/api/v1/health` returns HTTP 200 and `"status":"UP"`.
+  - `https://<your-render-service>.onrender.com/` loads the FinOffice login screen.
+4. Submit the GitHub repository URL and the Render service URL in the Google Form.
+
+The default Render manifest uses SQLite at `/tmp/creditorpulse.db`, which is suitable for a hackathon demo but is reset when the service is redeployed. For persistent production data, set `DATABASE_PATH` to a mounted persistent disk or migrate the database to PostgreSQL.
+
 ---
 
 ## 📜 User Workflow

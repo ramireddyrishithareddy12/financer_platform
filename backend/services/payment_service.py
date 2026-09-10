@@ -7,6 +7,7 @@ server-side webhook verification, and payment reconciliation logic.
 import hmac
 import hashlib
 import json
+import os
 import uuid
 import datetime
 from decimal import Decimal
@@ -15,7 +16,10 @@ from backend.database import get_db_connection
 from backend.services.ledger_service import LedgerService
 from backend.services.audit_service import AuditService
 
-GATEWAY_SHARED_SECRET = "sec_creditorpulse_webhook_key_2026"
+GATEWAY_SHARED_SECRET = os.environ.get(
+    "GATEWAY_SHARED_SECRET",
+    "sec_creditorpulse_webhook_key_2026"
+)
 
 class PaymentService:
     @staticmethod
