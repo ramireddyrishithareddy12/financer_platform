@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinOffice — Private Finance Office Management Platform</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="i18n.js"></script>
+</head>
+<body>
+
+  <!-- Top Active User Header Bar -->
+  <header class="top-header" id="topHeader" style="display: none;">
+    <div class="brand">
+      <div class="brand-icon">FO</div>
+      <span class="brand-name">FinOffice</span>
+    </div>
+    <div class="user-context">
+      <span id="lblUserGreeting">Welcome, Financier</span>
+      <span class="badge badge-org" id="lblOrgBadge">My Finance Office</span>
+    </div>
+    <div class="header-actions">
+      <div class="lang-selector">
+        <select id="selLanguage" onchange="setLanguage(this.value)">
+          <option value="en">🌐 English</option>
+          <option value="hi">🌐 हिंदी (Hindi)</option>
+          <option value="ta">🌐 தமிழ் (Tamil)</option>
+          <option value="te">🌐 తెలుగు (Telugu)</option>
+          <option value="kn">🌐 ಕನ್ನಡ (Kannada)</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="openProfileModal()">👤 My Profile</button>
+      <button class="btn btn-sm btn-secondary" onclick="toggleTheme()">🌓 Theme</button>
+      <button class="btn btn-sm btn-danger-outline" onclick="handleLogout()">🚪 Logout</button>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar" id="mainNavbar" style="display: none;">
+    <ul class="nav-links" id="navLinks">
+      <li class="nav-item active" onclick="showTab('dashboard')" data-i18n="navDashboard">📊 Dashboard</li>
+      <li class="nav-item" onclick="showTab('borrowers')" data-i18n="navBorrowers">👥 Borrowers</li>
+      <li class="nav-item" onclick="showTab('origination')" data-i18n="navLoanStudio">➕ Create Loan</li>
+      <li class="nav-item" onclick="showTab('cashdesk')" data-i18n="navCashDesk">💵 Cash Desk</li>
+      <li class="nav-item" onclick="showTab('reminders')" data-i18n="navReminders">🔔 Reminders</li>
+      <li class="nav-item" onclick="showTab('audit')" data-i18n="navAudit">📜 Audit Log</li>
+      <li class="nav-item" onclick="showTab('borrowerPortal')" data-i18n="navBorrowerPortal" id="navBorrowerItem" style="display: none;">📱 Borrower Portal</li>
+    </ul>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="container">
+
+    <!-- 0. AUTHENTICATION VIEW (LOGIN / CREATE ACCOUNT) -->
+    <section id="view-auth" class="view-panel active">
+      <div class="auth-wrapper">
+        <div class="auth-card">
+          <div class="auth-header">
+            <div class="auth-brand-logo">FO</div>
+            <h2>Private Finance Office</h2>
+            <p>Manage borrowers, repayment schedules, and authoritative ledgers</p>
+          </div>
+
+          <div class="tab-pills">
+            <button class="tab-pill active" id="btnTabLogin" onclick="switchAuthTab('login')">Login</button>
+            <button class="tab-pill" id="btnTabRegister" onclick="switchAuthTab('register')">Create Account</button>
+          </div>
+
+          <!-- LOGIN FORM -->
+          <form id="frmLogin" onsubmit="handleLogin(event)" class="auth-form active">
+            <div class="form-group">
+              <label>Mobile Number or Email *</label>
+              <input type="text" id="loginIdentifier" class="form-control" placeholder="Enter registered mobile or email" required>
+            </div>
+            <div class="form-group">
+              <label>Password *</label>
+              <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" required>
+            </div>
+            <div class="form-group">
+              <label>Account Role</label>
+              <select id="loginRole" class="form-control">
+                <option value="FINANCIER_OWNER">Financier Owner / Staff</option>
+                <option value="BORROWER">Borrower Self-Service</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-block btn-primary">Sign In →</button>
+          </form>
+
+          <!-- REGISTER FORM -->
+          <form id="frmRegister" onsubmit="handleRegister(event)" class="auth-form">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" id="regFullName" class="form-control" placeholder="Your full legal name" required>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number *</label>
+              <input type="tel" id="regPhone" class="form-control" placeholder="10-digit mobile number" required>
+            </div>
+            <div class="form-group">
+              <label>Email Address *</label>
+              <input type="email" id="regEmail" class="form-control" placeholder="name@example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Business / Office Name</label>
+              <input type="text" id="regOrgName" class="form-control" placeholder="e.g. Unique Finance Office">
+            </div>
+            <div class="form-group">
+              <label>Office Address</label>
+              <input type="text" id="regAddress" class="form-control" placeholder="City, State, Street address">
+            </div>
+            <div class="form-group">
+              <label>Create Password *</label>
+              <input type="password" id="regPassword" class="form-control" placeholder="At least 6 characters" required>
+            </div>
+            <button type="submit" class="btn btn-block btn-primary">Register Account →</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. FINANCIER DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view-panel">
+      <!-- Welcome Header -->
+      <div class="dashboard-welcome">
+        <div>
+          <h2 id="txtWelcomeTitle">Welcome</h2>
+          <p id="txtWelcomeSub">Here is your finance portfolio summary</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddBorrowerModal()">+ ADD BORROWER</button>
+      </div>
+
+      <!-- Zero-State Banner (Shown when no borrowers added) -->
+      <div id="boxEmptyState" class="empty-state-card" style="display: none;">
+        <div class="empty-icon">📂</div>
+        <h3>No borrowers added yet</h3>
+        <p>Add the people who have taken loans from you to start managing your repayment schedules.</p>
+        <button class="btn btn-primary btn-lg" onclick="openAddBorrowerModal()">+ ADD BORROWER</button>
+      </div>
+
+      <!-- Financial Counter Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card accent-blue">
+          <div class="kpi-title">Total Borrowers</div>
+          <div class="kpi-value" id="kpiTotalBorrowers">0</div>
+          <div class="kpi-sub">Active Borrower Profiles</div>
+        </div>
+        <div class="kpi-card accent-cyan">
+          <div class="kpi-title">Total Lent</div>
+          <div class="kpi-value" id="kpiTotalLent">₹0</div>
+          <div class="kpi-sub"><span id="kpiActiveLoans">0</span> Active Loans</div>
+        </div>
+        <div class="kpi-card accent-green">
+          <div class="kpi-title">Total Received</div>
+          <div class="kpi-value" id="kpiCollected">₹0</div>
+          <div class="kpi-sub">Principal + Interest Collected</div>
+        </div>
+        <div class="kpi-card accent-purple">
+          <div class="kpi-title">Outstanding</div>
+          <div class="kpi-value" id="kpiOutstanding">₹0</div>
+          <div class="kpi-sub">Remaining Portfolio Balance</div>
+        </div>
+        <div class="kpi-card accent-amber">
+          <div class="kpi-title">Due Today</div>
+          <div class="kpi-value" id="kpiDueToday">₹0</div>
+          <div class="kpi-sub">Installments maturing today</div>
+        </div>
+        <div class="kpi-card accent-red">
+          <div class="kpi-title">Overdue</div>
+          <div class="kpi-value" id="kpiOverdue">₹0</div>
+          <div class="kpi-sub"><span id="kpiOverdueBorrowers">0</span> Overdue Accounts</div>
+        </div>
+      </div>
+
+      <!-- Borrower Cards Section -->
+      <div class="card-box" style="margin-top: 24px;">
+        <div class="card-header flex-between">
+          <h3>Real Borrower Accounts</h3>
+          <div class="filter-controls" style="display: flex; gap: 10px;">
+            <input type="text" id="searchBorrower" class="form-control form-control-sm" placeholder="Search by name, phone, or loan ref..." oninput="debounceSearchBorrowers()">
+            <select id="filterStatus" class="form-control form-control-sm" onchange="loadDashboardMetrics()">
+              <option value="">All Statuses</option>
+              <option value="ACTIVE">Active Loans</option>
+              <option value="COMPLETED">Completed Loans</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="borrowerCardsGrid" class="borrower-cards-grid">
+          <!-- Dynamic Borrower Cards Rendered Here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. BORROWER DIRECTORY VIEW -->
+    <section id="view-borrowers" class="view-panel">
+      <div class="card-box">
+        <div class="card-header flex-between">
+          <h2>Borrower Directory</h2>
+          <button class="btn btn-primary" onclick="openAddBorrowerModal()">+ ADD BORROWER</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Borrower Name</th>
+                <th>Mobile Number</th>
+                <th>Address</th>
+                <th>Active Loan</th>
+                <th>Total Paid</th>
+                <th>Outstanding</th>
+                <th>Next Due</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tblBorrowersBody">
+              <tr><td colspan="8">Loading borrowers...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. LOAN ORIGINATION & CALCULATOR STUDIO VIEW -->
+    <section id="view-origination" class="view-panel">
+      <div class="card-box">
+        <h2 class="card-title" style="margin-bottom: 20px;">Disburse New Loan</h2>
+        
+        <form id="frmLoanStudio" onsubmit="handleDisburseLoan(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Select Borrower *</label>
+              <select id="selLoanBorrower" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label>Loan Amount Given (₹) *</label>
+              <input type="number" id="numPrincipal" class="form-control" placeholder="100000" step="500" min="100" required oninput="previewSchedule()">
+            </div>
+            <div class="form-group">
+              <label>Annual Interest Rate (%) *</label>
+              <input type="number" id="numRate" class="form-control" placeholder="12.0" step="0.1" min="0" required oninput="previewSchedule()">
+            </div>
+            <div class="form-group">
+              <label>Interest Calculation Method *</label>
+              <select id="selInterestType" class="form-control" onchange="previewSchedule()">
+                <option value="REDUCING_BALANCE" selected>Reducing Balance (Amortization / EMI)</option>
+                <option value="FLAT_RATE">Flat Interest Rate</option>
+                <option value="SIMPLE_INTEREST">Simple Interest</option>
+                <option value="RULE_OF_78S">Rule of 78s (Sum of Digits)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Repayment Frequency *</label>
+              <select id="selFrequency" class="form-control" onchange="previewSchedule()">
+                <option value="MONTHLY" selected>Monthly</option>
+                <option value="WEEKLY">Weekly</option>
+                <option value="DAILY">Daily</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Number of Installments / Months *</label>
+              <input type="number" id="numTenure" class="form-control" placeholder="12" min="1" max="120" required oninput="previewSchedule()">
+            </div>
+            <div class="form-group">
+              <label>First Payment Date *</label>
+              <input type="date" id="dtStartDate" class="form-control" required onchange="previewSchedule()">
+            </div>
+          </div>
+
+          <!-- Schedule Calculation Summary -->
+          <div class="calc-summary-box" id="calcSummaryBox">
+            <div class="calc-item"><span>Total Contractual Interest:</span> <strong id="lblCalcInterest">₹0.00</strong></div>
+            <div class="calc-item"><span>Total Amount Payable:</span> <strong id="lblCalcPayable">₹0.00</strong></div>
+            <div class="calc-item"><span>Installment Amount:</span> <strong id="lblCalcEmi">₹0.00</strong></div>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; gap: 12px;">
+            <button type="submit" class="btn btn-primary btn-lg">Disburse & Create Loan →</button>
+            <button type="button" class="btn btn-secondary" onclick="previewSchedule()">Recalculate Preview</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Preview Schedule Table -->
+      <div class="card-box" style="margin-top: 20px;">
+        <h3>Calculated Repayment Schedule Preview</h3>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Due Date</th>
+                <th>Principal Due</th>
+                <th>Interest Due</th>
+                <th>Total Installment Due</th>
+              </tr>
+            </thead>
+            <tbody id="tblPreviewBody">
+              <tr><td colspan="5">Fill in loan terms to preview calculated schedule.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CASH DESK VIEW -->
+    <section id="view-cashdesk" class="view-panel">
+      <div class="card-box">
+        <h2>Cash Desk & Offline Payments</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Record payments received directly or execute authorized transaction reversals.</p>
+
+        <div class="grid-2">
+          <!-- Record Payment Card -->
+          <div class="card-inner">
+            <h3>+ Record Payment</h3>
+            <form onsubmit="handleRecordCashPayment(event)">
+              <div class="form-group">
+                <label>Select Loan / Borrower *</label>
+                <select id="selCashLoan" class="form-control" required></select>
+              </div>
+              <div class="form-group">
+                <label>Amount Received (₹) *</label>
+                <input type="number" id="numCashAmount" class="form-control" step="1" required>
+              </div>
+              <div class="form-group">
+                <label>Payment Method *</label>
+                <select id="selCashMethod" class="form-control">
+                  <option value="CASH">Cash</option>
+                  <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
+                  <option value="UPI">UPI Payment</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Reference # / Txn ID</label>
+                <input type="text" id="txtCashRef" class="form-control" placeholder="e.g. TXN-100293">
+              </div>
+              <div class="form-group">
+                <label>Notes</label>
+                <input type="text" id="txtCashNotes" class="form-control" placeholder="Received payment in office">
+              </div>
+              <button type="submit" class="btn btn-primary">Submit & Post Ledger →</button>
+            </form>
+          </div>
+
+          <!-- Transaction Reversal Card -->
+          <div class="card-inner">
+            <h3>Reverse Payment Entry</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Reversals preserve original transactions and post double-entry counter-adjustments with full audit logging.</p>
+            <form onsubmit="handleReverseTransaction(event)">
+              <div class="form-group">
+                <label>Ledger Entry ID *</label>
+                <input type="text" id="txtRevLedgerId" class="form-control" placeholder="e.g. led_..." required>
+              </div>
+              <div class="form-group">
+                <label>Reason for Reversal *</label>
+                <input type="text" id="txtRevReason" class="form-control" placeholder="Bounced cheque / Incorrect entry" required>
+              </div>
+              <button type="submit" class="btn btn-danger">Execute Reversal →</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. REMINDERS VIEW -->
+    <section id="view-reminders" class="view-panel">
+      <div class="card-box">
+        <h2>Payment Reminders & Dispatches</h2>
+        <div class="table-responsive" style="margin-top: 16px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Borrower</th>
+                <th>Phone</th>
+                <th>Due Date</th>
+                <th>Amount Due</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tblRemindersBody">
+              <tr><td colspan="5">No pending reminders.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. AUDIT LOG VIEW -->
+    <section id="view-audit" class="view-panel">
+      <div class="card-box">
+        <h2>Immutable Audit Trail</h2>
+        <div class="table-responsive" style="margin-top: 16px;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Entity ID</th>
+                <th>State Details</th>
+              </tr>
+            </thead>
+            <tbody id="tblAuditBody">
+              <tr><td colspan="6">Loading audit logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. BORROWER SELF-SERVICE PORTAL VIEW -->
+    <section id="view-borrowerPortal" class="view-panel">
+      <div class="card-box">
+        <h2 id="borPortalTitle">Borrower Self-Service Portal</h2>
+        <div id="borPortalContent">
+          <!-- Dynamic Borrower Portal Data -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODALS -->
+
+  <!-- 1. ADD BORROWER MODAL -->
+  <div class="modal-overlay" id="modalAddBorrower">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>+ ADD NEW BORROWER</h3>
+        <button class="modal-close" onclick="closeModal('modalAddBorrower')">✕</button>
+      </div>
+      <form onsubmit="handleCreateBorrower(event)">
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="addBorName" class="form-control" placeholder="Borrower's full legal name" required>
+        </div>
+        <div class="form-group">
+          <label>Mobile Phone Number *</label>
+          <input type="tel" id="addBorPhone" class="form-control" placeholder="10-digit mobile number" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="addBorEmail" class="form-control" placeholder="borrower@example.com">
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" id="addBorAddress" class="form-control" placeholder="Residential / Business Address">
+        </div>
+        <div class="form-group">
+          <label>KYC ID Type & Number</label>
+          <div style="display: flex; gap: 8px;">
+            <select id="addBorKycType" class="form-control" style="width: 35%;">
+              <option value="AADHAAR">Aadhaar</option>
+              <option value="PAN">PAN</option>
+              <option value="VOTER_ID">Voter ID</option>
+              <option value="PASSPORT">Passport</option>
+            </select>
+            <input type="text" id="addBorKycNum" class="form-control" placeholder="ID Number">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px;">Save Borrower →</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. BORROWER COMPLETE MODULE MODAL -->
+  <div class="modal-overlay" id="modalBorrowerModule">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h2 id="modBorName">Borrower Module</h2>
+        <button class="modal-close" onclick="closeModal('modalBorrowerModule')">✕</button>
+      </div>
+
+      <div class="module-body">
+        <!-- Borrower Info Bar -->
+        <div class="info-bar flex-between" style="margin-bottom: 20px;">
+          <div>
+            <strong>Mobile:</strong> <span id="modBorPhone">--</span> | 
+            <strong>Address:</strong> <span id="modBorAddress">--</span>
+          </div>
+          <div>
+            <button class="btn btn-sm btn-primary" onclick="openDisburseForCurrentBorrower()">+ Add Loan</button>
+          </div>
+        </div>
+
+        <!-- Loan Summary Grid -->
+        <div class="card-inner" style="margin-bottom: 20px;">
+          <h3>Loan Summary</h3>
+          <div class="summary-grid">
+            <div><span>Original Loan Amount:</span> <strong id="modSumOriginal">₹0.00</strong></div>
+            <div><span>Interest Rate & Method:</span> <strong id="modSumRate">--</strong></div>
+            <div><span>Total Contractual Interest:</span> <strong id="modSumTotInterest">₹0.00</strong></div>
+            <div><span>Total Amount Payable:</span> <strong id="modSumTotPayable">₹0.00</strong></div>
+            <div><span>Total Amount Paid:</span> <strong id="modSumPaid" style="color: var(--accent-success);">₹0.00</strong></div>
+            <div><span>Principal Paid:</span> <strong id="modSumPrincPaid">₹0.00</strong></div>
+            <div><span>Interest Paid:</span> <strong id="modSumIntPaid">₹0.00</strong></div>
+            <div><span>Outstanding Balance:</span> <strong id="modSumOutstanding" style="color: var(--accent-warning);">₹0.00</strong></div>
+            <div><span>Remaining Interest:</span> <strong id="modSumRemInterest">₹0.00</strong></div>
+            <div><span>Remaining Installments:</span> <strong id="modSumRemInst">0</strong></div>
+            <div><span>Next Amount Due:</span> <strong id="modSumNextAmt">₹0.00</strong></div>
+            <div><span>Next Due Date:</span> <strong id="modSumNextDate">--</strong></div>
+          </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div class="module-actions" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn btn-success" onclick="openRecordPaymentForCurrentModule()">+ RECORD PAYMENT</button>
+          <button class="btn btn-secondary" onclick="openReminderModalForCurrent()">SEND PAYMENT REMINDER</button>
+          <button class="btn btn-secondary" onclick="openEarlySettlementForCurrent()">EARLY SETTLEMENT</button>
+          <button class="btn btn-secondary" onclick="downloadStatementForCurrent()">DOWNLOAD STATEMENT</button>
+          <button class="btn btn-danger-outline" onclick="archiveCurrentBorrower()">ARCHIVE BORROWER</button>
+        </div>
+
+        <!-- Tabs inside Module: Schedule & Ledger -->
+        <div class="tab-pills" style="margin-bottom: 16px;">
+          <button class="tab-pill active" id="btnModTabSched" onclick="switchModTab('schedule')">Repayment Schedule</button>
+          <button class="tab-pill" id="btnModTabLedger" onclick="switchModTab('ledger')">Payment History</button>
+        </div>
+
+        <div id="modViewSchedule" class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Due Date</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Total Due</th>
+                <th>Amount Paid</th>
+                <th>Remaining</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tblModScheduleBody">
+              <tr><td colspan="8">No loan active.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="modViewLedger" class="table-responsive" style="display: none;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount Paid</th>
+                <th>Principal</th>
+                <th>Interest</th>
+                <th>Method</th>
+                <th>Reference #</th>
+                <th>Recorded By</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody id="tblModLedgerBody">
+              <tr><td colspan="8">No transactions recorded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. MY PROFILE MODAL -->
+  <div class="modal-overlay" id="modalProfile">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>My Financier Profile</h3>
+        <button class="modal-close" onclick="closeModal('modalProfile')">✕</button>
+      </div>
+      <form onsubmit="handleUpdateProfile(event)">
+        <div class="form-group">
+          <label>Financier Name</label>
+          <input type="text" id="profFullName" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="tel" id="profPhone" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="profEmail" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Business / Office Name</label>
+          <input type="text" id="profOrgName" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Office Address</label>
+          <input type="text" id="profOrgAddress" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 16px;">Save Changes →</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. REMINDER MODAL -->
+  <div class="modal-overlay" id="modalReminder">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Send Payment Reminder</h3>
+        <button class="modal-close" onclick="closeModal('modalReminder')">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Reminder Channel</label>
+        <select id="selReminderChannel" class="form-control">
+          <option value="SMS">SMS</option>
+          <option value="WHATSAPP">WhatsApp</option>
+          <option value="EMAIL">Email</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Formatted Message Preview</label>
+        <textarea id="txtReminderPreview" class="form-control" rows="4" readonly></textarea>
+      </div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button class="btn btn-primary btn-block" onclick="dispatchReminderNow()">Dispatch Reminder →</button>
+        <button class="btn btn-secondary" onclick="copyReminderText()">Copy Text</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. DIGITAL RECEIPT MODAL -->
+  <div class="modal-overlay" id="modalReceipt">
+    <div class="modal-card">
+      <div class="receipt-print-area" id="receiptPrintArea">
+        <!-- Dynamic Digital Receipt Content -->
+      </div>
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Receipt</button>
+        <button class="btn btn-secondary" onclick="closeModal('modalReceipt')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. LOAN STATEMENT MODAL -->
+  <div class="modal-overlay" id="modalStatement">
+    <div class="modal-card modal-lg">
+      <div class="statement-print-area" id="statementPrintArea">
+        <!-- Dynamic Statement Content -->
+      </div>
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print / Save Statement PDF</button>
+        <button class="btn btn-secondary" onclick="closeModal('modalStatement')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
