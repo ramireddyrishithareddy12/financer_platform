@@ -1,14 +1,10 @@
 services:
   - type: web
-    name: finoffice
+    name: financer-platform
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn --workers 2 --bind 0.0.0.0:$PORT wsgi:app
-    healthCheckPath: /api/v1/health
+    startCommand: gunicorn backend.app:app
     envVars:
-      - key: FLASK_DEBUG
-        value: "false"
-      - key: GATEWAY_SHARED_SECRET
-        generateValue: true
-      - key: DATABASE_PATH
-        value: /tmp/creditorpulse.db
+      - key: PYTHON_VERSION
+        value: 3.11.9
